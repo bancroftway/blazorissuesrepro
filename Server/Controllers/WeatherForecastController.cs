@@ -31,7 +31,7 @@ namespace blazorissuesrepro.Server.Controllers
         {
             var rng = new Random();
 
-            await Task.Delay(5000);
+            //await Task.Delay(5000);
 
             return await Task.FromResult(
             Enumerable.Range(1, 5).Select(index => new WeatherForecast
