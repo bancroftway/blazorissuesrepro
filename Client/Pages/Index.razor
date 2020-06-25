@@ -1,0 +1,24 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using blazorissuesrepro.Services 
+@attribute [Authorize]
+@inject AppState AppState
+
+
+<h1>Page #1</h1>
+
+<CommonSelectComponent Items="AppState.WeatherForecasts"></CommonSelectComponent>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        AppState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+}

@@ -1,0 +1,22 @@
+﻿@using blazorissuesrepro.Shared
+
+<h3>This is a common component that may need to be present on many pages.</h3>
+<p>This component is bound to data contained in a common state container called AppState.</p>
+<p>Rather than each page that hosts this component call the api to fetch data for this component, we would like to call the api once when the app starts up.</p>
+<p>Therefore, there is a non-visual component in MainLayout.razor wrapped inside an AuthorizeView tag, whose sole job is to initiate the api query, and make it available in the AppState service. </p>
+
+<select>
+    <option value="-1">Select Item</option>
+    @if (Items != null && Items.Any())
+    {
+        @foreach (var forecast in Items)
+        {
+            <option value="@forecast.Summary">@forecast.Summary</option>
+        }
+    }
+</select>
+
+@code {
+    [Parameter]
+    public WeatherForecast[] Items { get; set; }
+}
