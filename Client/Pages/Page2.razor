@@ -10,9 +10,12 @@
 
 <CommonSelectComponent Items="AppState.WeatherForecasts"></CommonSelectComponent>
 
+
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await AppState.GetWeatherForecasts();
+
         AppState.OnChange += StateHasChanged;
     }
 

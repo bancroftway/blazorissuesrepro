@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using blazorissuesrepro.Services;
+using blazorissuesrepro.Client.Data;
+using Blazored.LocalStorage;
 
 namespace blazorissuesrepro.Client
 {
@@ -25,13 +27,17 @@ namespace blazorissuesrepro.Client
             // Supply HttpClient instances that include access tokens when making requests to the server project
             builder.Services.AddTransient(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("blazorissuesrepro.ServerAPI"));
 
-            builder.Services.AddMsalAuthentication(options =>
+            builder.Services.AddMsalAuthentication<RemoteAuthenticationState, RemoteUserAccount>(options =>
             {
                 builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
                 options.ProviderOptions.DefaultAccessTokenScopes.Add($"{builder.Configuration["AzureAd:ClientId"]}/{builder.Configuration["AzureAd:TokenScope"]}");
-            });
+            })
+            /////Added 
+            .AddAccountClaimsPrincipalFactory<RemoteAuthenticationState, RemoteUserAccount, CustomUserFactory>();
+            ///
 
             builder.Services.AddScoped<AppState>();
+            builder.Services.AddBlazoredLocalStorage();
 
             await builder.Build().RunAsync();
         }
