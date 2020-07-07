@@ -65,11 +65,13 @@
 
     #region drag drop
 
-    protected async override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await base.OnAfterRenderAsync(firstRender);
+
         if (firstRender)
         {
-            //await Task.Delay(5000);
+            await Task.Delay(2000);
             await jsRuntime.InvokeVoidAsync("enableDragDrop", DotNetObjectReference.Create(this));
         }
     }
