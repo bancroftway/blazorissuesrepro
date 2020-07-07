@@ -181,3 +181,20 @@ app {
         display: block;
     }
 }
+
+
+.connectedSortable {
+    border: 1px solid #eee;
+    min-height: 20px;
+    list-style-type: none;
+    margin: 0;
+    padding: 5px 0 0 0;
+    float: left;
+    margin-right: 10px;
+}
+
+    .connectedSortable li {
+        margin: 0 5px 5px 5px;
+        padding: 5px;
+        font-size: 1.2em;
+    }

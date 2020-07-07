@@ -1,10 +1,80 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Authorization
-@using blazorissuesrepro.Services 
+@using blazorissuesrepro.Services
 @attribute [Authorize]
-@inject AppState AppState
-
+@inject IJSRuntime jsRuntime
 
 <h1>Page #1</h1>
+
+@if (ListOfDays != null && ListOfDays.Any())
+{
+    <div class="container-fluid" style="background-color: #ededee;">
+        <div class="row">
+            <div class="col">1/1/2020</div>
+            <div class="col">1/2/2020</div>
+            <div class="col">1/3/2020</div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <ul class="connectedSortable">
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                </ul>
+            </div>
+            <div class="col">
+                <ul class="connectedSortable">
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                </ul>
+            </div>
+            <div class="col">
+                <ul class="connectedSortable">
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<DateTime> ListOfDays { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListOfDays = new List<DateTime>();
+
+        await Task.Delay(2000);   //simulate a slight delay such as calling an api
+
+        for (int counter = 0; counter <= 2; counter++)
+        {
+            ListOfDays.Add(DateTime.Today.AddDays(counter));
+        }
+    }
+
+    #region drag drop
+
+    protected async override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //await Task.Delay(5000);
+            await jsRuntime.InvokeVoidAsync("enableDragDrop", DotNetObjectReference.Create(this));
+        }
+    }
+
+    #endregion
+}
+
 
