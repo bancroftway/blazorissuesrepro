@@ -1,5 +1,7 @@
-﻿window.enableDragDrop = (dotnetHelper) => {
-    $(".connectedSortable").sortable({
-        connectWith: ".connectedSortable"
-    }).disableSelection();
+﻿window.showModal = (dotnetHelper) => {
+    $("#mymodal").modal('show');
+}
+
+window.hideModal = (dotnetHelper) => {
+    $("#mymodal").modal('hide');
 }
