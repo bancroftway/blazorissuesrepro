@@ -6,6 +6,29 @@
 
 <h1>Page #1</h1>
 
+<EditForm Model="@MyPerson2" OnValidSubmit="@SubmitValidForm" id="myfrm1">
+    <FluentValidationValidator />
+    <div class="modal-body">
+        <p>
+            <label>First Name: </label>
+            <InputText type="text" class="form-control" @bind-Value="MyPerson2.FirstName" />
+            <ValidationMessage For="@(() => MyPerson2.FirstName)" />
+        </p>
+
+        <p>
+            <label>Last Name: </label>
+            <InputText type="text" class="form-control" @bind-Value="MyPerson2.LastName" />
+            <ValidationMessage For="@(() => MyPerson2.LastName)" />
+        </p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </div>
+</EditForm>
+
+<hr />
+
+
 <button class="btn btn-primary" @onclick="ShowModal">Show Modal</button>
 
 <div class="modal fade" id="mymodal" tabindex="-1" role="dialog" aria-labelledby="mymodal" aria-hidden="true">
@@ -19,7 +42,7 @@
             </div>
             @if (MyPerson != null)
             {
-                <EditForm Model="@MyPerson" OnValidSubmit="@SubmitValidForm" id="myfrm">
+                <EditForm Model="@MyPerson" OnValidSubmit="@SubmitValidForm" id="myfrm2">
                     <FluentValidationValidator />
                     <div class="modal-body">
                         <p>
@@ -44,8 +67,11 @@
 </div>
 
 
+
+
 @code {
     Person MyPerson { get; set; } = new Person();
+    Person MyPerson2 { get; set; } = new Person();
 
     async Task SubmitValidForm()
     {
