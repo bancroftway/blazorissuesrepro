@@ -1,5 +1,6 @@
 ﻿using blazorissuesrepro.Shared;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -13,6 +14,7 @@ namespace blazorissuesrepro.Services
         public AppState(HttpClient http)
         {
             this.http = http;
+
         }
 
         public WeatherForecast[] WeatherForecasts { get; private set; }

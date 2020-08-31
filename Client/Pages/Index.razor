@@ -1,82 +1,195 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Microsoft.AspNetCore.Authorization
-@using blazorissuesrepro.Services
-@attribute [Authorize]
+@using OfficeOpenXml;
+@using PdfRpt.Core.Contracts
+@using PdfRpt.FluentInterface
+@using System.IO;
 @inject IJSRuntime jsRuntime
+@inject HttpClient httpClient
+
 
 <h1>Page #1</h1>
 
-@if (ListOfDays != null && ListOfDays.Any())
-{
-    <div class="container-fluid" style="background-color: #ededee;">
-        <div class="row">
-            <div class="col">1/1/2020</div>
-            <div class="col">1/2/2020</div>
-            <div class="col">1/3/2020</div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <ul class="connectedSortable">
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                </ul>
-            </div>
-            <div class="col">
-                <ul class="connectedSortable">
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                </ul>
-            </div>
-            <div class="col">
-                <ul class="connectedSortable">
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                    <li class="ui-state-highlight"><JobCardCmp></JobCardCmp></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-}
-
+<button class="btn btn-primary" @onclick="GeneratePdf">Generate Pdf</button>
 
 @code {
-    private List<DateTime> ListOfDays { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    private async Task GeneratePdf()
     {
-        ListOfDays = new List<DateTime>();
+        var excelTemplateByteArray = await httpClient.GetByteArrayAsync("exceltemplates/Book1.xlsx");
 
-        await Task.Delay(2000);   //simulate a slight delay such as calling an api
-
-        for (int counter = 0; counter <= 2; counter++)
+        using (var ms = new System.IO.MemoryStream(excelTemplateByteArray))
         {
-            ListOfDays.Add(DateTime.Today.AddDays(counter));
+
+            // Instantiate a Workbook object that represents the existing Excel file
+            using (var excelPackage = new ExcelPackage(ms))
+            {
+                //Get a WorkSheet by index. Note that EPPlus indexes are base 1, not base 0!
+                ExcelWorksheet firstWorksheet = excelPackage.Workbook.Worksheets[1];
+
+                // Get the reference of "A1" cell from the cells collection of a worksheet
+                firstWorksheet.Cells["A1"].Value = "Hello World";
+
+                using (var ms2 = new System.IO.MemoryStream())
+                {
+                    // Save the Excel file
+                    excelPackage.SaveAs(ms2);
+
+
+                    var pdfReportData = CreateExcelToPdfReport(ms2, 1);
+
+                    var fileBytes = StreamToByteArray(pdfReportData.PdfStreamOutput);
+                    var fileName = $"MyReport_{DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)}.pdf";
+                    await jsRuntime.InvokeAsync<object>("saveAsFile", fileName, Convert.ToBase64String(fileBytes));
+
+                    ms2.Close();
+                }
+            }
+
+            ms.Close();
         }
     }
 
-    #region drag drop
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    public static byte[] StreamToByteArray(Stream inputStream)
     {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
+        byte[] bytes = new byte[16384];
+        using (MemoryStream memoryStream = new MemoryStream())
         {
-            await Task.Delay(2000);
-            await jsRuntime.InvokeVoidAsync("enableDragDrop", DotNetObjectReference.Create(this));
+            int count;
+            while ((count = inputStream.Read(bytes, 0, bytes.Length)) > 0)
+            {
+                memoryStream.Write(bytes, 0, count);
+            }
+            return memoryStream.ToArray();
         }
     }
 
-    #endregion
+    private static IPdfReportData CreateExcelToPdfReport(System.IO.MemoryStream workBook, int workSheetIndex)
+    {
+        return new PdfReport().DocumentPreferences(doc =>
+        {
+            doc.RunDirection(PdfRunDirection.LeftToRight);
+            doc.Orientation(PageOrientation.Portrait);
+            doc.PageSize(PdfPageSize.A4);
+            doc.DocumentMetadata(new DocumentMetadata { Author = "Arvinder", Application = "PdfRpt", Keywords = "Test", Subject = "Test Rpt", Title = "Test" });
+            doc.Compression(new CompressionSettings
+            {
+                EnableCompression = true,
+                EnableFullCompression = true
+            });
+        })
+            //.DefaultFonts(fonts =>
+            //{
+            //    def
+            //    fonts.Size(9);
+            //    fonts.Color(System.Drawing.Color.Black);
+            //})
+            //.PagesFooter(footer =>
+            //{
+            //    footer.DefaultFooter(DateTime.Now.ToString("MM/dd/yyyy"));
+            //})
+            //.PagesHeader(header =>
+            //{
+            //    header.CacheHeader(cache: true); // It's a default setting to improve the performance.
+            //    header.DefaultHeader(defaultHeader =>
+            //    {
+            //        defaultHeader.RunDirection(PdfRunDirection.LeftToRight);
+            //        //defaultHeader.ImagePath(TestUtils.GetImagePath("01.png"));
+            //        defaultHeader.Message("Excel To Pdf Report");
+            //    });
+            //})
+            //.MainTableTemplate(template =>
+            //{
+            //    template.BasicTemplate(BasicTemplate.ClassicTemplate);
+            //})
+            //.MainTablePreferences(table =>
+            //{
+            //    table.ColumnsWidthsType(TableColumnWidthType.Relative);
+            //    table.MultipleColumnsPerPage(new MultipleColumnsPerPage
+            //    {
+            //        ColumnsGap = 7,
+            //        ColumnsPerPage = 3,
+            //        ColumnsWidth = 170,
+            //        IsRightToLeft = false,
+            //        TopMargin = 7
+            //    });
+            //})
+            .MainTableDataSource(dataSource =>
+            {
+                dataSource.CustomDataSource(() => new ExcelDataReaderDataSource(workBook, workSheetIndex));
+            })
+            //.MainTableColumns(columns =>
+            //{
+            //    //columns.AddColumn(column =>
+            //    //{
+            //    //    column.PropertyName("rowNo");
+            //    //    column.IsRowNumber(true);
+            //    //    column.CellsHorizontalAlignment(HorizontalAlignment.Center);
+            //    //    column.IsVisible(true);
+            //    //    column.Order(0);
+            //    //    column.Width(1);
+            //    //    column.HeaderCell("#");
+            //    //});
+
+            //    //var order = 1;
+            //    //foreach (var columnInfo in ExcelUtils.GetColumns(filePath, excelWorksheet))
+            //    //{
+            //    //    columns.AddColumn(column =>
+            //    //    {
+            //    //        column.PropertyName(columnInfo);
+            //    //        column.CellsHorizontalAlignment(HorizontalAlignment.Center);
+            //    //        column.IsVisible(true);
+            //    //        column.Order(order++);
+            //    //        column.Width(1);
+            //    //        column.HeaderCell(columnInfo);
+            //    //    });
+            //    //}
+            //})
+            //.MainTableEvents(events =>
+            //{
+            //    events.DataSourceIsEmpty(message: "There is no data available to display.");
+            //})
+            .Generate(data => data.AsPdfStream(new MemoryStream()));
+    }
+
+    public class ExcelDataReaderDataSource : IDataSource
+    {
+        private readonly System.IO.MemoryStream _ms;
+        private readonly int _worksheetIndex;
+
+        public ExcelDataReaderDataSource(System.IO.MemoryStream ms, int worksheetIndex)
+        {
+            _ms = ms;
+            _worksheetIndex = worksheetIndex;
+        }
+
+        public IEnumerable<IList<CellData>> Rows()
+        {
+            using (var package = new ExcelPackage(_ms))
+            {
+                var worksheet = package.Workbook.Worksheets[_worksheetIndex];
+                var startCell = worksheet.Dimension.Start;
+                var endCell = worksheet.Dimension.End;
+
+                for (var row = startCell.Row + 1; row < endCell.Row + 1; row++)
+                {
+                    var i = 0;
+                    var result = new List<CellData>();
+                    for (var col = startCell.Column; col <= endCell.Column; col++)
+                    {
+                        var pdfCellData = new CellData
+                        {
+                            PropertyName = worksheet.Cells[1, col].Value.ToString(),
+                            PropertyValue = worksheet.Cells[row, col].Value,
+                            PropertyIndex = i++
+                        };
+                        result.Add(pdfCellData);
+                    }
+                    yield return result;
+                }
+            }
+        }
+    }
+
+
 }
 
 
