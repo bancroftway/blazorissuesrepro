@@ -33,9 +33,7 @@ else
                             <tr @key="forecast.Id">
                                 <td>@forecast.Date.ToShortDateString()</td>
                                 <td>
-                                    <InputNumber class="form-control text-center input-sm" id="@("dp-tempc-input-" + forecast.Id.ToString())"
-                                                 type="number" step="1"
-                                                 Value="forecast.TemperatureC" TValue="int" ValueExpression="@(() => forecast.TemperatureC)" ValueChanged="x => OnTempCChanged(forecast, x)" />
+                                    <InputNumber class="form-control text-center input-sm" @bind-Value="forecast.TemperatureC" />
                                 </td>
                                 <td>
                                     @forecast.TemperatureF
